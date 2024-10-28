@@ -1,0 +1,12 @@
+.app {
+  &__form-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    padding: 50px 500px;
+    background-color: #e8edf6;
+  }
+
+  &__h1 {
+    margin-bottom: 20px;
+  }
+}
