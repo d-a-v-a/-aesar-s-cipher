@@ -3,28 +3,87 @@
     <h1 class="app__h1 tui-text_h1">
       Шифр Цезаря
     </h1>
-    <form [formGroup]="testForm">
-      <tui-textarea
-        formControlName="testValue1"
-        [expandable]="true"
-        [maxLength]="maxLength"
-      >
-        Введите текст для зашифровки, используйте только английски или только русский алфавит
-      </tui-textarea>
-      <tui-error
-        formControlName="testValue1"
-        [error]="[] | tuiFieldError | async"
-      />
-      <tui-input-number
-        formControlName="key"
-      >
-        M - сдвиг по алфавиту
-      </tui-input-number>
-      <tui-error
-        formControlName="key"
-        [error]="[] | tuiFieldError | async"
-      />
+    <form [formGroup]="cryptForm">
+
+      <div class="app__encrypt-block">
+        <div class="app__encrypt-control">
+          <tui-textarea
+            formControlName="encrypt"
+            [expandable]="true"
+            [maxLength]="maxLength"
+          >
+            Введите текст для зашифровки, используйте только английски или только русский алфавит
+          </tui-textarea>
+          <tui-error
+            formControlName="encrypt"
+            [error]="[] | tuiFieldError | async"
+          />
+        </div>
+
+        <div class="app__right-menu">
+          <div class="app__m-control">
+            <tui-input-number
+              formControlName="m"
+            >
+              M - сдвиг по алфавиту
+            </tui-input-number>
+            <tui-error
+              formControlName="m"
+              [error]="[] | tuiFieldError | async"
+            />
+          </div>
+
+          <div class="app__switch-block">
+
+            RU
+            <input
+              class="app__switch"
+              tuiSwitch
+              type="checkbox"
+              formControlName="language"
+            />
+            EN
+          </div>
+        </div>
+      </div>
+
+      <div class="app__buttons">
+        <button
+          iconStart="@tui.arrow-down"
+          tuiButton
+          type="button"
+          [loading]="loading"
+          (click)="encrypt()"
+        >
+          Зашифровать
+        </button>
+
+        <button
+          iconStart="@tui.arrow-up"
+          tuiButton
+          type="button"
+          [loading]="loading"
+          (click)="decrypt()"
+        >
+          Расшифорвать
+        </button>
+      </div>
+
+      <div class="app__encrypt-control">
+        <tui-textarea
+          formControlName="decrypt"
+          [expandable]="true"
+          [maxLength]="maxLength"
+        >
+          Зашифрованное сообщение
+        </tui-textarea>
+        <tui-error
+          formControlName="decrypt"
+          [error]="[] | tuiFieldError | async"
+        />
+      </div>
+
     </form>
   </div>
-<router-outlet />
+  <router-outlet/>
 </tui-root>

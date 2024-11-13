@@ -9,4 +9,38 @@
   &__h1 {
     margin-bottom: 20px;
   }
+
+  &__encrypt-block {
+    display: flex;
+    margin-bottom: 20px;
+    justify-content: space-between;
+  }
+
+  &__encrypt-control {
+    width: 77%;
+  }
+
+  &__m-control {
+
+  }
+
+  &__right-menu {
+    width: 20%;
+  }
+
+  &__buttons {
+    margin-bottom: 20px;
+    button:first-child {
+      margin-right: 15px;
+    }
+  }
+
+  &__switch-block {
+    display: flex;
+    align-items: center;
+  }
+
+  &__switch {
+    margin: 10px;
+  }
 }
