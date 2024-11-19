@@ -12,8 +12,6 @@ import {
 } from '@taiga-ui/kit';
 import { tuiMarkControlAsTouchedAndValidate } from '@taiga-ui/cdk';
 import { AsyncPipe } from '@angular/common';
-import * as buffer from 'buffer';
-import { Language } from './enums/language.enum';
 
 const ENCRYPT_TEXT_EXAMPLE = `
 ДА ЗДРАВСТВУЮТ МУЗЫ, ДА ЗДРАВСТВУЕТ РАЗУМ
@@ -33,44 +31,74 @@ const DECRYPT_TEXT_EXAMPLE = `
 ЩЯНРУ ЯУЩЙЧ ПОЩОС ОЫЕЦШ
 
 `;
+
 interface IFrequencies {
   [key: string]: number
 }
 
 const russianLetterFrequencies: IFrequencies = {
-  "о": 0.090,
-  "е": 0.072,
-  "а": 0.062,
-  "и": 0.062,
-  "н": 0.053,
-  "т": 0.053,
-  "с": 0.045,
-  "р": 0.040,
-  "в": 0.038,
-  "л": 0.035,
-  "к": 0.028,
-  "м": 0.026,
-  "д": 0.025,
-  "п": 0.023,
-  "у": 0.021,
-  "я": 0.018,
-  "ы": 0.016,
-  "ь": 0.014,
-  "г": 0.013,
-  "з": 0.012,
-  "б": 0.014,
-  "ч": 0.012,
-  "й": 0.010,
-  "х": 0.009,
-  "ж": 0.007,
-  "ш": 0.006,
-  "ю": 0.006,
-  "ц": 0.003,
-  "щ": 0.003,
-  "э": 0.003,
-  "ф": 0.002,
+  "О": 0.090,
+  "Е": 0.072,
+  "А": 0.062,
+  "И": 0.062,
+  "Н": 0.053,
+  "Т": 0.053,
+  "С": 0.045,
+  "Р": 0.040,
+  "В": 0.038,
+  "Л": 0.035,
+  "К": 0.028,
+  "М": 0.026,
+  "Д": 0.025,
+  "П": 0.023,
+  "У": 0.021,
+  "Я": 0.018,
+  "Ы": 0.016,
+  "Ь": 0.014,
+  "Ъ": 0.014,
+  "Г": 0.013,
+  "З": 0.012,
+  "Б": 0.014,
+  "Ч": 0.012,
+  "Й": 0.010,
+  "Х": 0.009,
+  "Ж": 0.007,
+  "Ш": 0.006,
+  "Ю": 0.006,
+  "Ц": 0.003,
+  "Щ": 0.003,
+  "Э": 0.003,
+  "Ф": 0.002,
 } as const;
 
+const englishLetterFrequencies: IFrequencies = {
+  "A": 0.08167,
+  "B": 0.01492,
+  "C": 0.02782,
+  "D": 0.04253,
+  "E": 0.12702,
+  "F": 0.02228,
+  "G": 0.02015,
+  "H": 0.06094,
+  "I": 0.06966,
+  "J": 0.00153,
+  "K": 0.00772,
+  "L": 0.04025,
+  "M": 0.02406,
+  "N": 0.06749,
+  "O": 0.07507,
+  "P": 0.01929,
+  "Q": 0.00095,
+  "R": 0.05987,
+  "S": 0.06327,
+  "T": 0.09056,
+  "U": 0.02758,
+  "V": 0.00978,
+  "W": 0.02360,
+  "X": 0.00150,
+  "Y": 0.01974,
+  "Z": 0.00074,
+} as const;
 
 export function maxLengthMessageFactory(context: { requiredLength: string }): string {
   return `Maximum length — ${context.requiredLength}`;
@@ -141,60 +169,48 @@ export class AppComponent implements AfterViewInit {
     const shift: number = m || m === 0 ? m : this.cryptForm.controls['m'].value || 0;
     const alphabet: string[] = !!this.cryptForm.controls['language'].value ? this.englishAlphabet : this.russianAlphabet;
 
-    let text: string = encryptControl.value?.trim() || '';
+    const text: string = this.filterText(encryptControl.value?.trim() || '', alphabet);
+    const newText: string = this.getShiftOfAlphabetText(text, alphabet, shift);
 
-    text = text
-      .split('')
-      .map((x: string) => x.toUpperCase())
-      .map((x: string) => {
-        if (x === 'Ё') {
-          return 'Е';
-        }
-
-        return x;
-      })
-      .filter((x: string) => alphabet.includes(x))
-      .map((char: string): string => {
-        const index: number = (alphabet.indexOf(char) + shift) % alphabet.length;
-
-        return alphabet[index];
-      }).join('');
-    decryptControl.setValue(text);
+    decryptControl.setValue(newText.replace(/\s/g, '').replace(/(\D{5})/g, '$1 ').trim());
     this.loading = false;
   }
 
   /** Расшифровать Методом наименьших квадратов */
   public decrypt(): void {
+    this.loading = true;
+
     const decryptControl: FormControl<string | null> = this.cryptForm.controls['decrypt'];
+    const alphabet: string[] = !!this.cryptForm.controls['language'].value ? this.englishAlphabet : this.russianAlphabet;
+    const frequency: IFrequencies = !!this.cryptForm.controls['language'].value ? englishLetterFrequencies : russianLetterFrequencies;
 
     const bestShift: number = this.decryptCaesarWithLeastSquares(
-      decryptControl.value || '',
-      this.russianAlphabet,
-      russianLetterFrequencies,
+      this.filterText(decryptControl.value || '', alphabet),
+      alphabet,
+      frequency,
     );
 
-    this.cryptForm.controls['m'].setValue(bestShift -1);
+    this.cryptForm.controls['m'].setValue(bestShift);
 
-    this.shiftTextAndSetControl('decrypt', -bestShift + 1);
+    this.shiftTextAndSetControl('decrypt', -bestShift);
   }
 
   /** Расшифровка методом наименьших квадратов */
   private decryptCaesarWithLeastSquares(encryptedText: string, alphabet: string[], langFreq: IFrequencies) {
-    const encryptedFreq: IFrequencies = this.getFrequency(encryptedText, alphabet);
-    const langVector: number[] = alphabet.map((char) => langFreq[char] || 0);
     let bestShift: number = 0;
     let minError: number = Infinity;
 
     for (let shift: number = 0; shift < alphabet.length; shift++) {
-      const shiftedVector: number[] = alphabet.map((char: string, i: number) => {
-        const shiftedChar: string = alphabet[(i + shift) % alphabet.length];
-        return encryptedFreq[shiftedChar] || 0;
-      });
 
-      const error: number = shiftedVector.reduce((sum: number, value: number, i: number) => {
-        const diff: number = value - langVector[i];
-        return sum + diff * diff;
-      }, 0);
+      const text: string = this.getShiftOfAlphabetText(encryptedText, alphabet, -shift);
+      const encryptedFreq: IFrequencies = this.getFrequency(text, alphabet);
+
+      const arr: number[] = alphabet
+        .map((char: string) => {
+          return Math.pow(langFreq[char] - encryptedFreq[char], 2);
+        });
+
+      const error: number = arr.reduce((sum: number, x: number) => sum + x, 0);
 
       if (error < minError) {
         minError = error;
@@ -212,14 +228,39 @@ export class AppComponent implements AfterViewInit {
     const total: number = text.split("").filter((char) => alphabet.includes(char)).length;
 
     for (const char of alphabet) {
-      frequency[char] = text.split(char).length;
-    }
-
-    // Преобразуем в относительные частоты
-    for (const char in frequency) {
-      frequency[char] /= total || 1; // Защита от деления на 0
+      frequency[char] = (text.split(char).length - 1) / total;
     }
 
     return frequency;
+  }
+
+  /** Возвращает текст сдвинутый по алфавиту на величину shift */
+  private getShiftOfAlphabetText(text: string, alphabet: string[], shift: number): string {
+    return text
+      .split('')
+      .map((char: string): string => {
+        let index: number = (alphabet.indexOf(char) + shift) % alphabet.length;
+        if (index < 0) {
+          index = alphabet.length + index;
+        }
+
+        return alphabet[index];
+      }).join('');
+  }
+
+  /** Убирает лишние символы в зависимости от алфавита, заменяет некоторые символы на другие */
+  private filterText(text: string, alphabet: string[]): string {
+    return text
+      .split('')
+      .map((x: string) => x.toUpperCase())
+      .map((x: string) => {
+        if (x === 'Ё') {
+          return 'Е';
+        }
+
+        return x;
+      })
+      .filter((x: string) => alphabet.includes(x))
+      .join('');
   }
 }
