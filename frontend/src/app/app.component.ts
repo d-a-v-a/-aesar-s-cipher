@@ -13,9 +13,7 @@ import {
 import { tuiMarkControlAsTouchedAndValidate } from '@taiga-ui/cdk';
 import { AsyncPipe } from '@angular/common';
 
-const ENCRYPT_TEXT_EXAMPLE = `
-ДА ЗДРАВСТВУЮТ МУЗЫ, ДА ЗДРАВСТВУЕТ РАЗУМ
-`;
+const ENCRYPT_TEXT_EXAMPLE = ``;
 
 const DECRYPT_TEXT_EXAMPLE = `
 РЬАЬА ШЮЙАП ОЩОСО ЫЕЦШТ ЩНРУЯ УЩЙГЦ ЯЩОРЫ ЙГТУА УЧЯЪЬ АЮНАТ УРЬЕШ ОЦЪОЩ
@@ -140,12 +138,23 @@ export class AppComponent implements AfterViewInit {
   public loading: boolean = false;
 
   protected readonly cryptForm = new FormGroup({
-    encrypt: new FormControl<string>(ENCRYPT_TEXT_EXAMPLE.trim(), [
+    encrypt: new FormControl<string>('', [
       Validators.maxLength(this.maxLength),
     ]),
-    decrypt: new FormControl<string>(DECRYPT_TEXT_EXAMPLE, [
+    encryptFinish: new FormControl<string>('', []),
+
+    decrypt: new FormControl<string>('', [
       Validators.maxLength(this.maxLength),
     ]),
+    decryptFinish: new FormControl<string>('', []),
+
+
+    break: new FormControl<string>('', [
+      Validators.maxLength(this.maxLength),
+    ]),
+    breakFinish: new FormControl<string>('', []),
+
+
     m: new FormControl<number>(3, [
       Validators.required,
     ]),
@@ -162,10 +171,16 @@ export class AppComponent implements AfterViewInit {
   private readonly russianAlphabet: string[] = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'.split('');
 
   /** Сдвинуть текст по алфавиту и добавить в один из контролов */
-  public shiftTextAndSetControl(type: 'encrypt' | 'decrypt', m?: number): void {
+  public shiftTextAndSetControl(type: 'encrypt' | 'decrypt' | 'break', m?: number): void {
     this.loading = true;
-    const encryptControl: FormControl<string | null> = type === 'encrypt' ? this.cryptForm.controls['encrypt'] : this.cryptForm.controls['decrypt'];
-    const decryptControl: FormControl<string | null> = type === 'encrypt' ? this.cryptForm.controls['decrypt'] : this.cryptForm.controls['encrypt'];
+    let encryptControl: FormControl<string | null> = type === 'encrypt' ? this.cryptForm.controls['encrypt'] : this.cryptForm.controls['decrypt'];
+    let decryptControl: FormControl<string | null> = type === 'encrypt' ? this.cryptForm.controls['decrypt'] : this.cryptForm.controls['encrypt'];
+
+    if (type ) {
+
+    }
+
+
     const shift: number = m || m === 0 ? m : this.cryptForm.controls['m'].value || 0;
     const alphabet: string[] = !!this.cryptForm.controls['language'].value ? this.englishAlphabet : this.russianAlphabet;
 
