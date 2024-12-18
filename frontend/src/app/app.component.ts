@@ -1,4 +1,11 @@
-import { TuiButton, TuiError, TuiHintOptionsDirective, TuiRoot, TuiTextfieldOptionsDirective } from "@taiga-ui/core";
+import {
+  TuiButton,
+  TuiError,
+  TuiHintOptionsDirective,
+  TuiNumberFormat,
+  TuiRoot,
+  TuiTextfieldOptionsDirective
+} from "@taiga-ui/core";
 import { AfterViewInit, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -120,7 +127,8 @@ export function maxLengthMessageFactory(context: { requiredLength: string }): st
     TuiButton,
     TuiButtonLoading,
     TuiSwitch,
-    FormsModule
+    FormsModule,
+    TuiNumberFormat
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
@@ -142,26 +150,68 @@ export class AppComponent implements AfterViewInit {
       Validators.maxLength(this.maxLength),
     ]),
     encryptFinish: new FormControl<string>('', []),
+    mEncrypt: new FormControl<number>(3, [
+      Validators.required,
+    ]),
 
     decrypt: new FormControl<string>('', [
       Validators.maxLength(this.maxLength),
     ]),
     decryptFinish: new FormControl<string>('', []),
-
+    mDecrypt: new FormControl<number>(4, [
+      Validators.required,
+    ]),
 
     break: new FormControl<string>('', [
       Validators.maxLength(this.maxLength),
     ]),
     breakFinish: new FormControl<string>('', []),
-
-
-    m: new FormControl<number>(3, [
+    mBreak: new FormControl<number>(3, [
       Validators.required,
     ]),
     language: new FormControl(false, [
       Validators.required,
     ])
   });
+
+
+  /** Зашифровка */
+  public encrypt() {
+    this.loading = true;
+    let encryptControl: FormControl<string | null> = this.cryptForm.controls['encrypt'];
+    let encryptFinishControl: FormControl<string | null> = this.cryptForm.controls['encryptFinish'];
+
+    const shift: number = this.cryptForm.controls['mEncrypt'].value || 0;
+
+    const alphabet: string[] = this.russianAlphabet;
+
+    const text: string = this.filterText(encryptControl.value?.trim() || '');
+
+    encryptControl.setValue(text.replace(/\s/g, '').replace(/(\D{5})/g, '$1 ').trim());
+
+    const newText: string = this.getShiftOfAlphabetText(text, shift);
+
+    encryptFinishControl.setValue(newText.replace(/\s/g, '').replace(/(\D{5})/g, '$1 ').trim());
+    this.loading = false;
+  }
+
+  /** Расшифровка */
+  public decrypt() {
+    this.loading = true;
+    let decryptControl: FormControl<string | null> = this.cryptForm.controls['decrypt'];
+    let decryptFinishControl: FormControl<string | null> = this.cryptForm.controls['decryptFinish'];
+
+    const shift: number = this.cryptForm.controls['mDecrypt'].value || 0;
+
+    const text: string = this.filterText(decryptControl.value?.trim() || '');
+
+    decryptControl.setValue(text.replace(/\s/g, '').replace(/(\D{5})/g, '$1 ').trim());
+
+    const newText: string = this.getShiftOfAlphabetText(text, -shift);
+
+    decryptFinishControl.setValue(newText.replace(/\s/g, '').replace(/(\D{5})/g, '$1 ').trim());
+    this.loading = false;
+  }
 
   public ngAfterViewInit(): void {
     tuiMarkControlAsTouchedAndValidate(this.cryptForm);
@@ -170,44 +220,33 @@ export class AppComponent implements AfterViewInit {
   private readonly englishAlphabet: string[] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   private readonly russianAlphabet: string[] = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'.split('');
 
-  /** Сдвинуть текст по алфавиту и добавить в один из контролов */
-  public shiftTextAndSetControl(type: 'encrypt' | 'decrypt' | 'break', m?: number): void {
-    this.loading = true;
-    let encryptControl: FormControl<string | null> = type === 'encrypt' ? this.cryptForm.controls['encrypt'] : this.cryptForm.controls['decrypt'];
-    let decryptControl: FormControl<string | null> = type === 'encrypt' ? this.cryptForm.controls['decrypt'] : this.cryptForm.controls['encrypt'];
-
-    if (type ) {
-
-    }
-
-
-    const shift: number = m || m === 0 ? m : this.cryptForm.controls['m'].value || 0;
-    const alphabet: string[] = !!this.cryptForm.controls['language'].value ? this.englishAlphabet : this.russianAlphabet;
-
-    const text: string = this.filterText(encryptControl.value?.trim() || '', alphabet);
-    const newText: string = this.getShiftOfAlphabetText(text, alphabet, shift);
-
-    decryptControl.setValue(newText.replace(/\s/g, '').replace(/(\D{5})/g, '$1 ').trim());
-    this.loading = false;
-  }
-
-  /** Расшифровать Методом наименьших квадратов */
-  public decrypt(): void {
+  /** Взлом Методом наименьших квадратов */
+  public breakCipher(): void {
     this.loading = true;
 
-    const decryptControl: FormControl<string | null> = this.cryptForm.controls['decrypt'];
+    const breakControl: FormControl<string | null> = this.cryptForm.controls['break'];
+    const breakFinishControl: FormControl<string | null> = this.cryptForm.controls['breakFinish'];
     const alphabet: string[] = !!this.cryptForm.controls['language'].value ? this.englishAlphabet : this.russianAlphabet;
     const frequency: IFrequencies = !!this.cryptForm.controls['language'].value ? englishLetterFrequencies : russianLetterFrequencies;
 
+    const text: string = this.filterText(breakControl.value || '', alphabet);
+
+    breakControl.setValue(text.replace(/\s/g, '').replace(/(\D{5})/g, '$1 ').trim());
+
     const bestShift: number = this.decryptCaesarWithLeastSquares(
-      this.filterText(decryptControl.value || '', alphabet),
+      text,
       alphabet,
       frequency,
     );
 
-    this.cryptForm.controls['m'].setValue(bestShift);
+    const newText: string = this.getShiftOfAlphabetText(text, -bestShift);
 
-    this.shiftTextAndSetControl('decrypt', -bestShift);
+    breakFinishControl.setValue(newText.replace(/\s/g, '').replace(/(\D{5})/g, '$1 ').trim());
+
+    this.cryptForm.controls['mBreak'].setValue(bestShift);
+
+
+    this.loading = false;
   }
 
   /** Расшифровка методом наименьших квадратов */
@@ -217,7 +256,7 @@ export class AppComponent implements AfterViewInit {
 
     for (let shift: number = 0; shift < alphabet.length; shift++) {
 
-      const text: string = this.getShiftOfAlphabetText(encryptedText, alphabet, -shift);
+      const text: string = this.getShiftOfAlphabetText(encryptedText, -shift);
       const encryptedFreq: IFrequencies = this.getFrequency(text, alphabet);
 
       const arr: number[] = alphabet
@@ -250,11 +289,24 @@ export class AppComponent implements AfterViewInit {
   }
 
   /** Возвращает текст сдвинутый по алфавиту на величину shift */
-  private getShiftOfAlphabetText(text: string, alphabet: string[], shift: number): string {
+  private getShiftOfAlphabetText(text: string, shift: number): string {
     return text
       .split('')
       .map((char: string): string => {
+        let alphabet: string[] = [];
+        if (!this.russianAlphabet.includes(char) && !this.englishAlphabet.includes(char)) {
+          return '';
+        }
+        if (this.russianAlphabet.includes(char)) {
+          alphabet = this.russianAlphabet;
+        }
+
+        if (this.englishAlphabet.includes(char)) {
+          alphabet = this.englishAlphabet;
+        }
+
         let index: number = (alphabet.indexOf(char) + shift) % alphabet.length;
+
         if (index < 0) {
           index = alphabet.length + index;
         }
@@ -264,7 +316,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   /** Убирает лишние символы в зависимости от алфавита, заменяет некоторые символы на другие */
-  private filterText(text: string, alphabet: string[]): string {
+  private filterText(text: string, alphabet?: string[]): string {
     return text
       .split('')
       .map((x: string) => x.toUpperCase())
@@ -275,7 +327,8 @@ export class AppComponent implements AfterViewInit {
 
         return x;
       })
-      .filter((x: string) => alphabet.includes(x))
+      .filter((x: string) => this.russianAlphabet.includes(x) || this.englishAlphabet.includes(x))
+      .filter((x: string) => (alphabet && alphabet.length && alphabet.length > 0) ? alphabet?.includes(x) : true)
       .join('');
   }
 }

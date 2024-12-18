@@ -15,13 +15,27 @@
           [expandable]="true"
           [maxLength]="maxLength"
         >
-          Введите текст для зашифровки, используйте английский или русский алфавит
+          Используйте английский или русский алфавит, лишние символы будут стерты!
         </tui-textarea>
         <tui-error
           formControlName="encrypt"
           [error]="[] | tuiFieldError | async"
         />
+        <div class="app__m-control">
+          <tui-input-number
+            formControlName="mEncrypt"
+            [tuiNumberFormat]="{ precision: 0 }"
+          >
+            M - сдвиг по алфавиту
+          </tui-input-number>
+          <tui-error
+            formControlName="mEncrypt"
+            [error]="[] | tuiFieldError | async"
+          />
+        </div>
       </div>
+
+
 
       <button
         class="margin-down"
@@ -29,7 +43,7 @@
         tuiButton
         type="button"
         [loading]="loading"
-        (click)="shiftTextAndSetControl('encrypt')"
+        (click)="encrypt()"
       >
         Зашифровать
       </button>
@@ -54,16 +68,28 @@
       </h1>
       <div class="app__encrypt-control">
         <tui-textarea
-          formControlName="decryot"
+          formControlName="decrypt"
           [expandable]="true"
           [maxLength]="maxLength"
         >
-          Введите текст для зашифровки, используйте английский или русский алфавит
+          Используйте английский или русский алфавит, лишние символы будут стерты!
         </tui-textarea>
         <tui-error
-          formControlName="decryotFinish"
+          formControlName="decrypt"
           [error]="[] | tuiFieldError | async"
         />
+        <div class="app__m-control">
+          <tui-input-number
+            formControlName="mDecrypt"
+            [tuiNumberFormat]="{ precision: 0 }"
+          >
+            M - сдвиг по алфавиту
+          </tui-input-number>
+          <tui-error
+            formControlName="mDecrypt"
+            [error]="[] | tuiFieldError | async"
+          />
+        </div>
       </div>
 
       <button
@@ -79,13 +105,13 @@
 
       <div class="app__encrypt-control">
         <tui-textarea
-          formControlName="encrypt"
+          formControlName="decryptFinish"
           [expandable]="true"
           [maxLength]="maxLength"
         >
         </tui-textarea>
         <tui-error
-          formControlName="encrypt"
+          formControlName="decryptFinish"
           [error]="[] | tuiFieldError | async"
         />
       </div>
@@ -96,14 +122,14 @@
       </h1>
       <div class="app__encrypt-control">
         <tui-textarea
-          formControlName="encrypt"
+          formControlName="break"
           [expandable]="true"
           [maxLength]="maxLength"
         >
-          Введите текст для зашифровки, используйте английский или русский алфавит
+          Используйте английский или русский алфавит, лишние символы будут стерты!
         </tui-textarea>
         <tui-error
-          formControlName="encrypt"
+          formControlName="break"
           [error]="[] | tuiFieldError | async"
         />
       </div>
@@ -114,23 +140,11 @@
           tuiButton
           type="button"
           [loading]="loading"
-          (click)="decrypt()"
+          (click)="breakCipher()"
         >
           Взлом
         </button>
         <div class="app__right-menu">
-          <div class="app__m-control">
-            <tui-input-number
-              formControlName="m"
-            >
-              M - сдвиг по алфавиту
-            </tui-input-number>
-            <tui-error
-              formControlName="m"
-              [error]="[] | tuiFieldError | async"
-            />
-          </div>
-
           <div class="app__switch-block">
 
             RU
@@ -146,14 +160,26 @@
       </div>
 
       <div class="app__encrypt-control">
+        <div class="app__m-control">
+          <tui-input-number
+            formControlName="mBreak"
+            [tuiNumberFormat]="{ precision: 0 }"
+          >
+            M - сдвиг по алфавиту
+          </tui-input-number>
+          <tui-error
+            formControlName="mBreak"
+            [error]="[] | tuiFieldError | async"
+          />
+        </div>
         <tui-textarea
-          formControlName="encrypt"
+          formControlName="breakFinish"
           [expandable]="true"
           [maxLength]="maxLength"
         >
         </tui-textarea>
         <tui-error
-          formControlName="encrypt"
+          formControlName="breakFinish"
           [error]="[] | tuiFieldError | async"
         />
       </div>
