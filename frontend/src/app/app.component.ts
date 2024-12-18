@@ -166,7 +166,7 @@ export class AppComponent implements AfterViewInit {
       Validators.maxLength(this.maxLength),
     ]),
     breakFinish: new FormControl<string>('', []),
-    mBreak: new FormControl<number>(3, [
+    mBreak: new FormControl<number>(0, [
       Validators.required,
     ]),
     language: new FormControl(false, [
